@@ -41,10 +41,13 @@ module State =
                 |> function
                     | Ok sortData -> Some sortData
                     | Error _ -> None
-                |> Option.map (Array.filter (fun sortData ->
-                    sortData.ToDelete
-                    && sortData.Path |> File.Exists
-                ))
+                |> Option.map (
+                    Array.filter (fun sortData ->
+                        sortData.ToDelete
+                        && sortData.Path |> File.Exists
+                    )
+                    >> Array.sortBy _.Path
+                )
 
         { SavePath = savePath
           SortData = sortData

@@ -38,5 +38,5 @@ type Model =
     { SavePath: string
       PhotoPaths: string array
       CurrentPhoto: PhotoInfo
-      SortedPhotos: SortData array }
+      SortData: SortData array }
 

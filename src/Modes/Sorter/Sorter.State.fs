@@ -5,7 +5,6 @@ open System.IO
 
 open Elmish
 open Avalonia.Input
-open Thoth.Json.Net
 
 module Cmds =
     let saveSortData savePath sortData =
@@ -14,14 +13,15 @@ module Cmds =
             let saveFilePath = Path.Combine(savePath, "mode-sorter.json")
 
             match File.Exists saveFilePath with
-            | false -> File.Create(saveFilePath) |> ignore
+            | false ->
+                let stream = File.Create(saveFilePath)
+                stream.Close()
             | true -> ()
 
-            File.WriteAllTextAsync(saveFilePath, rawSortData)
-            |> ignore
+            File.WriteAllTextAsync(saveFilePath, rawSortData) |> ignore
         )
 
-    let updateStarOnPhoto currentPhoto newStar =
+    let updateStarOnPhoto (currentPhoto: PhotoInfo) newStar =
         Cmd.ofEffect (fun dispatch ->
             let sortedPhoto =
                 match currentPhoto.SortData with
@@ -38,7 +38,7 @@ module Cmds =
             |> dispatch
         )
 
-    let toggleTrashStateOnPhoto currentPhoto =
+    let toggleTrashStateOnPhoto (currentPhoto: PhotoInfo) =
         Cmd.ofEffect (fun dispatch ->
             let sortedPhoto =
                 match currentPhoto.SortData with
@@ -54,35 +54,7 @@ module Cmds =
         )
 
 module State =
-    let init photosDirectory =
-        let savedSortDataOpt =
-            let saveFilePath = Path.Combine(photosDirectory, "mode-sorter.json")
-
-            match saveFilePath |> File.Exists with
-            | false -> None
-            | true ->
-                saveFilePath
-                |> File.ReadAllText
-                |> SortData.decode
-                |> Result.toOption
-
-        let photoPaths =
-            photosDirectory
-            |> Directory.GetFiles
-            |> Array.filter (fun path ->
-                path.EndsWith(".jpg", StringComparison.InvariantCultureIgnoreCase)
-            )
-
-        { SavePath = photosDirectory
-          PhotoPaths = photoPaths
-          CurrentPhoto = { Path = photoPaths |> Array.head
-                           Index = 0
-                           SortData = None }
-          SortedPhotos = savedSortDataOpt
-                         |> Option.defaultValue Array.empty },
-        Cmd.none
-
-    let loadPhoto model offset =
+    let loadNextPhoto offset model =
         let newIdx =
             Math.Clamp(
                 model.CurrentPhoto.Index + offset,
@@ -93,7 +65,7 @@ module State =
         let newPhotoPath = model.PhotoPaths |> Array.item newIdx
 
         let sortData =
-            model.SortedPhotos
+            model.SortData
             |> Array.tryFind (fun sp -> sp.Path = newPhotoPath)
 
         let newPhoto =
@@ -103,6 +75,43 @@ module State =
 
         { model with CurrentPhoto = newPhoto }
 
+    let init photosDirectory =
+        let loadPhotoPaths model =
+            let photoPaths =
+                photosDirectory
+                |> Directory.GetFiles
+                |> Array.filter (fun path ->
+                    path.EndsWith(".jpg", StringComparison.InvariantCultureIgnoreCase)
+                )
+
+            { model with PhotoPaths = photoPaths }
+
+        let loadSavedSortData model : Model =
+            let saveFilePath = Path.Combine(photosDirectory, "mode-sorter.json")
+
+            match saveFilePath |> File.Exists with
+            | false -> { model with SortData = Array.empty }
+            | true ->
+                let sortData =
+                    saveFilePath
+                    |> File.ReadAllText
+                    |> SortData.decode
+                    |> Result.toOption
+                    |> Option.defaultValue Array.empty
+
+                { model with SortData = sortData }
+
+        let dummyModel =
+            { SavePath = photosDirectory
+              PhotoPaths = Array.empty
+              CurrentPhoto = { Path = ""; Index = 0; SortData = None }
+              SortData = Array.empty }
+
+        dummyModel
+        |> loadPhotoPaths
+        |> loadSavedSortData
+        |> loadNextPhoto 0,
+        Cmd.none
 
     let update msg model =
         match msg with
@@ -119,12 +128,12 @@ module State =
 
         | Msg.KeyPressed _ -> model, Cmd.none
 
-        | Msg.NextPhoto -> loadPhoto model +1, Cmd.none
-        | Msg.PrevPhoto -> loadPhoto model -1, Cmd.none
+        | Msg.NextPhoto -> loadNextPhoto +1 model, Cmd.none
+        | Msg.PrevPhoto -> loadNextPhoto -1 model, Cmd.none
 
         | Msg.SortPhoto sortedPhoto ->
             let newSortData =
-                model.SortedPhotos
+                model.SortData
                 |> Array.filter (fun sp -> sp.Path <> sortedPhoto.Path)
                 |> Array.append [| sortedPhoto |]
 
@@ -135,5 +144,5 @@ module State =
 
             { model with
                 CurrentPhoto = newCurrentPhoto
-                SortedPhotos = newSortData },
+                SortData = newSortData },
             Cmds.saveSortData model.SavePath newSortData
