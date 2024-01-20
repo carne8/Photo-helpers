@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <PublishAot>true</PublishAot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/Fonts/*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Modes/Sorter/Sorter.Types.fs" />
+    <Compile Include="Modes/Sorter/Sorter.State.fs" />
+    <Compile Include="Modes/Sorter/Sorter.View.fs" />
+
+    <Compile Include="Modes/SortApplier/SortApplier.Types.fs" />
+    <Compile Include="Modes/SortApplier/SortApplier.State.fs" />
+    <Compile Include="Modes/SortApplier/SortApplier.View.fs" />
+
+    <Compile Include="Modes/Consecutive/Consecutive.Types.fs" />
+    <Compile Include="Modes/Consecutive/Consecutive.State.fs" />
+    <Compile Include="Modes/Consecutive/Consecutive.View.fs" />
+
+    <Compile Include="App/App.Types.fs" />
+    <Compile Include="App/App.State.fs" />
+    <Compile Include="App/App.View.fs" />
+
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.7" />
+    <PackageReference Include="Avalonia.FuncUI" Version="1.2.0" />
+    <PackageReference Include="Avalonia.FuncUI.Elmish" Version="1.2.0" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.7" />
+    <PackageReference Include="Thoth.Json.Net" Version="11.0.0" />
+  </ItemGroup>
+
+</Project>
