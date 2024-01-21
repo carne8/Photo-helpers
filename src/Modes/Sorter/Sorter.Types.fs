@@ -10,16 +10,46 @@ type Star =
     | Four
     | Five
 
+    static member encode star =
+        star
+        |> function
+            | One -> 1
+            | Two -> 2
+            | Three -> 3
+            | Four -> 4
+            | Five -> 5
+        |> Encode.int
+
+    static member decoder: Decoder<Star> =
+        Decode.int |> Decode.andThen (function
+            | 1 -> Decode.succeed One
+            | 2 -> Decode.succeed Two
+            | 3 -> Decode.succeed Three
+            | 4 -> Decode.succeed Four
+            | 5 -> Decode.succeed Five
+            | _ -> Decode.fail "Invalid star value"
+        )
+
 type SortData =
     { Path: string
       ToDelete: bool
       Stars: Star option }
 
-    static member private encoder = Encode.Auto.generateEncoderCached<SortData array> CamelCase
-    static member private decoder = Decode.Auto.generateDecoderCached<SortData array> CamelCase
+    static member encode sortData =
+        Encode.object [
+            "path", Encode.string sortData.Path
+            "toDelete", Encode.bool sortData.ToDelete
+            "stars", Encode.option Star.encode sortData.Stars
+        ]
 
-    static member encode sortData = SortData.encoder sortData |> Encode.toString 2
-    static member decode rawSortData = Decode.fromString SortData.decoder rawSortData
+    static member decoder: Decoder<SortData> =
+        Decode.object (fun get ->
+            { Path = get.Required.Field "path" Decode.string
+              ToDelete = get.Required.Field "toDelete" Decode.bool
+              Stars = get.Optional.Field "stars" Star.decoder }
+        )
+
+    static member decodeString rawSortData = Decode.fromString SortData.decoder rawSortData
 
 
 [<RequireQualifiedAccess>]

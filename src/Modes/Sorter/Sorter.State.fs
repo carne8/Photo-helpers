@@ -5,11 +5,17 @@ open System.IO
 
 open Elmish
 open Avalonia.Input
+open Thoth.Json.Net
 
 module Cmds =
     let saveSortData savePath sortData =
         Cmd.ofEffect (fun _dispatch ->
-            let rawSortData = sortData |> SortData.encode
+            let rawSortData =
+                sortData
+                |> Array.map SortData.encode
+                |> Encode.array
+                |> Encode.toString 2
+
             let saveFilePath = Path.Combine(savePath, "mode-sorter.json")
 
             match File.Exists saveFilePath with
@@ -95,7 +101,7 @@ module State =
                 let sortData =
                     saveFilePath
                     |> File.ReadAllText
-                    |> SortData.decode
+                    |> Decode.fromString (Decode.array SortData.decoder)
                     |> Result.toOption
                     |> Option.defaultValue Array.empty
 

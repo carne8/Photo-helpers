@@ -1,9 +1,11 @@
 namespace PhotoHelpers.Modes.SortApplier
 
-open System.IO
-open Elmish
 open PhotoHelpers.Modes.Sorter
 open PhotoHelpers.Modes.SortApplier
+
+open System.IO
+open Elmish
+open Thoth.Json.Net
 
 module Cmds =
     let applySortData savePath sortData =
@@ -37,7 +39,7 @@ module State =
             | true ->
                 saveFilePath
                 |> File.ReadAllText
-                |> SortData.decode
+                |> Decode.fromString (Decode.array SortData.decoder)
                 |> function
                     | Ok sortData -> Some sortData
                     | Error _ -> None

@@ -36,7 +36,7 @@ let heading numberOfPhotosToDelete =
             ]
 
             TextBlock.create [
-                TextBlock.text (sprintf "%i photos will be deleted." numberOfPhotosToDelete)
+                TextBlock.text ($"{numberOfPhotosToDelete} photos will be deleted.")
                 TextBlock.fontFamily fontFamily
                 TextBlock.textAlignment TextAlignment.Center
             ]
@@ -44,37 +44,36 @@ let heading numberOfPhotosToDelete =
     ]
 
 let images photoPaths =
-    Component.create("Images", fun ctx ->
-        let bitmaps =
-            photoPaths
-            |> List.ofArray
-            |> List.map (fun photoPath ->
-                let stream = photoPath |> File.OpenRead
-                stream, Bitmap.DecodeToHeight(stream, 200)
-            )
-
-        ctx.control.Unloaded.Add(fun _ ->
-            bitmaps |> List.iter (fun (stream, bitmap) ->
-                bitmap.Dispose()
-                stream.Dispose()
-            )
+    let bitmaps =
+        photoPaths
+        |> List.ofArray
+        |> List.map (fun photoPath ->
+            let stream = photoPath |> File.OpenRead
+            stream, Bitmap.DecodeToHeight(stream, 200)
         )
 
-        WrapPanel.create [
-            WrapPanel.margin (Thickness(0, 30, 0, 0))
-            WrapPanel.horizontalAlignment HorizontalAlignment.Center
-            WrapPanel.orientation Orientation.Horizontal
-            WrapPanel.children (
-                bitmaps |> List.map (fun (_, bitmap) ->
-                    Image.create [
-                        Image.source bitmap
-                        Image.height 200.
-                        Image.margin (Thickness(5))
-                    ]
+    WrapPanel.create [
+        WrapPanel.init (fun control ->
+            control.Unloaded.Add(fun _ ->
+                bitmaps |> List.iter (fun (stream, bitmap) ->
+                    bitmap.Dispose()
+                    stream.Dispose()
                 )
             )
-        ]
-    )
+        )
+        WrapPanel.margin (Thickness(0, 30, 0, 0))
+        WrapPanel.horizontalAlignment HorizontalAlignment.Center
+        WrapPanel.orientation Orientation.Horizontal
+        WrapPanel.children (
+            bitmaps |> List.map (fun (_, bitmap) ->
+                Image.create [
+                    Image.source bitmap
+                    Image.height 200.
+                    Image.margin (Thickness(5))
+                ]
+            )
+        )
+    ]
 
 let button isConfirm dispatch =
     Button.create [
