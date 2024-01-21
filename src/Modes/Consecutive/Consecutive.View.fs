@@ -4,17 +4,14 @@ open Avalonia.Layout
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.Media
-open Avalonia.Media.Imaging
 open System.Diagnostics
 open System.IO
+open PhotoHelpers.Controls
 
 let imageCouple (photo1: string) (photo2: string) =
     let openInFileExplorer path =
         Process.Start("explorer.exe", sprintf "/select,\"%s\"" path)
         |> ignore
-
-    let photo1Stream = File.OpenRead(photo1)
-    let photo2Stream = File.OpenRead(photo2)
 
     let fontFamily =
         "avares://PhotoHelpers/Assets/Fonts#Space Grotesk"
@@ -34,18 +31,21 @@ let imageCouple (photo1: string) (photo2: string) =
         ]
 
     let images =
-        StackPanel.create [
-            StackPanel.orientation Orientation.Horizontal
-            StackPanel.children [
-                Image.create [
-                    Image.source (Bitmap.DecodeToHeight(photo1Stream, 200))
-                    Image.height 200.0
-                    Image.onTapped (fun _ -> photo1 |> openInFileExplorer)
+        DockPanel.create [
+            DockPanel.children [
+                Panel.create [
+                    Panel.dock Dock.Left
+                    Panel.onTapped (fun _ -> photo1 |> openInFileExplorer)
+                    Panel.children [
+                        OrientedImage.create photo1 (Some 200)
+                    ]
                 ]
-                Image.create [
-                    Image.source (Bitmap.DecodeToHeight(photo2Stream, 200))
-                    Image.height 200.0
-                    Image.onTapped (fun _ -> photo2 |> openInFileExplorer)
+                Panel.create [
+                    Panel.dock Dock.Right
+                    Panel.onTapped (fun _ -> photo2 |> openInFileExplorer)
+                    Panel.children [
+                        OrientedImage.create photo2 (Some 200)
+                    ]
                 ]
             ]
         ]

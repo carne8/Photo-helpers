@@ -17,6 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="Controls/OrientedImage.fs" />
+
     <Compile Include="Modes/Sorter/Sorter.Types.fs" />
     <Compile Include="Modes/Sorter/Sorter.State.fs" />
     <Compile Include="Modes/Sorter/Sorter.View.fs" />

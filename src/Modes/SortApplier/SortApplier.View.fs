@@ -1,20 +1,20 @@
 module PhotoHelpers.Modes.SortApplier.View
 
 open PhotoHelpers.Modes.SortApplier
+open PhotoHelpers.Controls
 
 open Avalonia
 open Avalonia.Layout
 open Avalonia.Controls
 open Avalonia.Media
-open Avalonia.Media.Imaging
-open Avalonia.FuncUI
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
-open System.IO
+
 
 let fontFamily =
     "avares://PhotoHelpers/Assets/Fonts#Space Grotesk"
     |> FontFamily
+
 
 let heading numberOfPhotosToDelete =
     StackPanel.create [
@@ -43,37 +43,24 @@ let heading numberOfPhotosToDelete =
         ]
     ]
 
-let images photoPaths =
-    let bitmaps =
-        photoPaths
-        |> List.ofArray
-        |> List.map (fun photoPath ->
-            let stream = photoPath |> File.OpenRead
-            stream, Bitmap.DecodeToHeight(stream, 200)
-        )
 
+let images photoPaths =
     WrapPanel.create [
-        WrapPanel.init (fun control ->
-            control.Unloaded.Add(fun _ ->
-                bitmaps |> List.iter (fun (stream, bitmap) ->
-                    bitmap.Dispose()
-                    stream.Dispose()
-                )
-            )
-        )
         WrapPanel.margin (Thickness(0, 30, 0, 0))
         WrapPanel.horizontalAlignment HorizontalAlignment.Center
         WrapPanel.orientation Orientation.Horizontal
         WrapPanel.children (
-            bitmaps |> List.map (fun (_, bitmap) ->
-                Image.create [
-                    Image.source bitmap
-                    Image.height 200.
-                    Image.margin (Thickness(5))
+            photoPaths
+            |> List.ofArray
+            |> List.map (fun imagePath ->
+                Border.create [
+                    Border.margin (Thickness(5))
+                    Border.child (OrientedImage.create imagePath (Some 200))
                 ]
             )
         )
     ]
+
 
 let button isConfirm dispatch =
     Button.create [
@@ -95,6 +82,32 @@ let button isConfirm dispatch =
         )
     ]
 
+
+let status deletionState =
+    let isVisible =
+        match deletionState with
+        | DeletionState.None -> false
+        | _ -> true
+
+    let text =
+        match deletionState with
+        | DeletionState.None -> ""
+        | DeletionState.Confirming -> "Are you sure?"
+        | DeletionState.Deleting -> "Deleting..."
+        | DeletionState.Deleted -> "Deleted!"
+
+    TextBlock.create [
+        TextBlock.isVisible isVisible
+        TextBlock.text text
+        TextBlock.fontWeight FontWeight.Bold
+        TextBlock.fontFamily fontFamily
+        TextBlock.textAlignment TextAlignment.Center
+        TextBlock.dock Dock.Top
+        TextBlock.margin (Thickness(0, 15, 0, 0))
+    ]
+
+
+
 let view model _dispatch =
     match model.SortData with
     | None ->
@@ -108,24 +121,31 @@ let view model _dispatch =
         ] :> IView
 
     | Some photosToDelete ->
-        Border.create [
-            Border.padding (Thickness(20))
 
-            DockPanel.create [
-                DockPanel.children [
-                    heading (photosToDelete |> Array.length)
+        DockPanel.create [
+            DockPanel.children [
+                heading (photosToDelete |> Array.length)
 
-                    match model.DeletionState with
-                    | DeletionState.None -> button false _dispatch
-                    | DeletionState.Confirming -> button true _dispatch
-                    | DeletionState.Deleting -> ()
-                    | DeletionState.Deleted -> ()
+                status model.DeletionState
 
-                    match model.DeletionState with
-                    | DeletionState.None
-                    | DeletionState.Confirming -> images (photosToDelete |> Array.map _.Path)
-                    | _ -> ()
-                ]
+                match model.DeletionState with
+                | DeletionState.None -> button false _dispatch
+                | DeletionState.Confirming -> button true _dispatch
+                | DeletionState.Deleting -> ()
+                | DeletionState.Deleted -> ()
+
+                match model.DeletionState with
+                | DeletionState.None
+                | DeletionState.Confirming -> images (photosToDelete |> Array.map _.Path)
+                | _ -> ()
             ]
-            |> Border.child
         ]
+        |> fun dockPanel ->
+            Border.create [
+                Border.padding (Thickness(20))
+                Border.child dockPanel
+            ]
+        |> fun border ->
+            ScrollViewer.create [
+                ScrollViewer.content border
+            ]

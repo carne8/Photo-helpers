@@ -8,25 +8,48 @@ open Elmish
 open Thoth.Json.Net
 
 module Cmds =
+    let private deleteFile trashFolder (path: string) =
+        let newPath =
+            Path.Combine(
+                trashFolder,
+                path |> Path.GetFileName
+            )
+
+        File.Move(path, newPath)
+
     let applySortData savePath sortData =
-        Cmd.ofEffect (fun _dispatch ->
+        Cmd.ofEffect (fun dispatch ->
             let trashFolder =
                 Path.Combine(savePath, "Trash")
                 |> Directory.CreateDirectory
+                |> _.FullName
+
+            let photos =
+                savePath
+                |> Directory.GetFiles
+                |> Array.map (fun path ->
+                    path |> Path.GetFileNameWithoutExtension,
+                    path
+                )
 
             sortData
             |> Array.filter _.ToDelete
             |> Array.iter (fun sortData ->
-                let oldPath = sortData.Path |> Path.GetFullPath
+                let sortDataPhotoName = sortData.Path |> Path.GetFileNameWithoutExtension
 
-                let newPath =
-                    Path.Combine(
-                        trashFolder.FullName,
-                        sortData.Path |> Path.GetFileName
+                let filesToDelete =
+                    photos |> Array.choose (fun (photoName, path) ->
+                        match photoName = sortDataPhotoName
+                              && File.Exists path with
+                        | true -> Some path
+                        | false -> None
                     )
 
-                File.Move(oldPath, newPath)
+                filesToDelete
+                |> Array.iter (deleteFile trashFolder)
             )
+
+            Msg.Deleted |> dispatch
         )
 
 module State =
