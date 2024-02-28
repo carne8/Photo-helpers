@@ -7,6 +7,7 @@ type HomeMsg =
     | OpenSorter
     | OpenSortApplier
     | OpenConsecutive
+    | OpenOrganize
 
 [<RequireQualifiedAccess>]
 type Mode =
@@ -14,6 +15,7 @@ type Mode =
     | Sorter of Modes.Sorter.Model
     | SortApplier of Modes.SortApplier.Model
     | Consecutive of Modes.Consecutive.Model
+    | Organize of Modes.Organize.Model
 
 [<RequireQualifiedAccess>]
 type ModeMsg =
@@ -21,6 +23,7 @@ type ModeMsg =
     | Sorter of Modes.Sorter.Msg
     | SortApplier of Modes.SortApplier.Msg
     | Consecutive of Modes.Consecutive.Msg
+    | Organize of Modes.Organize.Msg
 
 [<RequireQualifiedAccess>]
 type Msg =

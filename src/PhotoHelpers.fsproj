@@ -31,6 +31,10 @@
     <Compile Include="Modes/Consecutive/Consecutive.State.fs" />
     <Compile Include="Modes/Consecutive/Consecutive.View.fs" />
 
+    <Compile Include="Modes/Organize/Organize.Types.fs" />
+    <Compile Include="Modes/Organize/Organize.State.fs" />
+    <Compile Include="Modes/Organize/Organize.View.fs" />
+
     <Compile Include="App/App.Types.fs" />
     <Compile Include="App/App.State.fs" />
     <Compile Include="App/App.View.fs" />
@@ -43,6 +47,8 @@
     <PackageReference Include="Avalonia.FuncUI" Version="1.2.0" />
     <PackageReference Include="Avalonia.FuncUI.Elmish" Version="1.2.0" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.7" />
+    <PackageReference Include="FsToolkit.ErrorHandling" Version="4.15.1" />
+    <PackageReference Include="FsToolkit.ErrorHandling.TaskResult" Version="4.15.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.2" />
     <PackageReference Include="Thoth.Json.Net" Version="11.0.0" />
   </ItemGroup>

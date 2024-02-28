@@ -4,7 +4,6 @@ open Avalonia.Controls
 open Avalonia.Layout
 open Avalonia.Media
 open Avalonia.Media.Imaging
-open Avalonia.FuncUI
 open Avalonia.FuncUI.DSL
 
 open System.IO

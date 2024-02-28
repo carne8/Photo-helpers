@@ -14,7 +14,8 @@ let homeView _ dispatch =
     let modes =
         [ "Sorter", HomeMsg.OpenSorter
           "Sort Applier", HomeMsg.OpenSortApplier
-          "Consecutive", HomeMsg.OpenConsecutive ]
+          "Consecutive", HomeMsg.OpenConsecutive
+          "Organize", HomeMsg.OpenOrganize ]
 
     let fontFamily =
         "avares://PhotoHelpers/Assets/Fonts#Space Grotesk"
@@ -49,3 +50,4 @@ let view model dispatch =
     | Mode.Sorter model -> Modes.Sorter.View.view model (ModeMsg.Sorter >> Msg.ModeMsg >> dispatch)
     | Mode.SortApplier model -> Modes.SortApplier.View.view model (ModeMsg.SortApplier >> Msg.ModeMsg >> dispatch)
     | Mode.Consecutive model -> Modes.Consecutive.View.view model (ModeMsg.Consecutive >> Msg.ModeMsg >> dispatch)
+    | Mode.Organize model -> Modes.Organize.View.view model (ModeMsg.Organize >> Msg.ModeMsg >> dispatch)

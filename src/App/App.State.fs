@@ -3,14 +3,18 @@ namespace PhotoHelpers.App
 open PhotoHelpers
 open Elmish
 open Avalonia.Controls
+open System.IO
 
 module State =
     let init (window, photosDirectory) =
+        printfn "Photos directory: %A" photosDirectory
+
         { Window = window
           Mode = Mode.Home
           PhotosDirectory =
             photosDirectory
-            |> Option.defaultValue "../photos" },
+            |> Option.defaultValue "../photos"
+            |> Path.GetFullPath },
         Cmd.none
 
     let updateHome homeMsg mainModel =
@@ -32,6 +36,12 @@ module State =
 
             { mainModel with Mode = Mode.Consecutive model },
             cmd |> Cmd.map (ModeMsg.Consecutive >> Msg.ModeMsg)
+
+        | HomeMsg.OpenOrganize ->
+            let model, cmd = Modes.Organize.State.init mainModel.PhotosDirectory
+
+            { mainModel with Mode = Mode.Organize model },
+            cmd |> Cmd.map (ModeMsg.Organize >> Msg.ModeMsg)
 
 
     let update msg mainModel =
@@ -84,6 +94,13 @@ module State =
 
             { mainModel with Mode = Mode.Consecutive model },
             cmd |> Cmd.map (ModeMsg.Consecutive >> Msg.ModeMsg)
+
+        // Organize
+        | Mode.Organize model, Msg.ModeMsg (ModeMsg.Organize msg) ->
+            let model, cmd = Modes.Organize.State.update msg model
+
+            { mainModel with Mode = Mode.Organize model },
+            cmd |> Cmd.map (ModeMsg.Organize >> Msg.ModeMsg)
 
 
         // --- Ignore unexpected states ---
